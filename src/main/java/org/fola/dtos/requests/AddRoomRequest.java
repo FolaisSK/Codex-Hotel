@@ -5,6 +5,6 @@ import org.fola.data.models.Type;
 
 @Data
 public class AddRoomRequest {
-    private int roomNumber;
+    private String roomNumber;
     private Type roomType;
 }

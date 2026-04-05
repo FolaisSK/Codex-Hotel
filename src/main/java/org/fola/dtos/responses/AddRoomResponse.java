@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class AddRoomResponse {
     private String id;
-    private int roomNumber;
+    private String roomNumber;
     private Type roomType;
     private double pricePerNight;
     private boolean isAvailable;
