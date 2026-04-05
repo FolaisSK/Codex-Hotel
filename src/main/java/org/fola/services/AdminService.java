@@ -1,0 +1,86 @@
+package org.fola.services;
+
+import org.fola.data.models.Reservation;
+import org.fola.data.models.Room;
+import org.fola.data.models.Type;
+import org.fola.data.repositories.AdminRepository;
+import org.fola.data.repositories.ReservationRepository;
+import org.fola.data.repositories.RoomRepository;
+import org.fola.dtos.requests.AddRoomRequest;
+import org.fola.dtos.responses.AddRoomResponse;
+import org.fola.dtos.responses.ViewGuestDetailsResponse;
+import org.fola.exceptions.ReservationDoesNotExist;
+import org.fola.exceptions.RoomDoesNotExistException;
+import org.fola.exceptions.RoomIsAlreadyAvailable;
+import org.fola.exceptions.RoomIsAlreadyUnavailable;
+import org.fola.utils.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AdminService {
+    @Autowired
+    AdminRepository adminRepository;
+    @Autowired
+    RoomRepository roomRepository;
+    @Autowired
+    ReservationRepository reservationRepository;
+
+    private static final double singleRoomPrice = 10_000;
+    private static final double doubleRoomPrice = 15_000;
+    private static final double suiteRoomPrice = 25_000;
+
+    public AddRoomResponse addRoom(AddRoomRequest request){
+        Room room = Mapper.map(request);
+        room.setPricePerNight(assignRoomPrice(request.getRoomType()));
+        roomRepository.save(room);
+        return Mapper.map(room);
+    }
+
+    public List<AddRoomResponse> viewAllRooms(){
+        return roomRepository.findAll().stream().map(room -> Mapper.map(room)).toList();
+    }
+
+    public AddRoomResponse markRoomForMaintenance(String roomNumber){
+        Room room = roomRepository.findByRoomNumber(roomNumber)
+                .orElseThrow(()-> new RoomDoesNotExistException("Room does not exist!"));
+        if(room.isUnderMaintenance()) throw  new RoomIsAlreadyUnavailable("Room " + roomNumber +" is already under maintenance!");
+        room.setAvailable(false);
+        room.setUnderMaintenance(true);
+        roomRepository.save(room);
+        return Mapper.map(room);
+    }
+
+    public AddRoomResponse unmarkRoomForMaintenance(String roomNumber){
+        Room room = roomRepository.findByRoomNumber(roomNumber)
+                .orElseThrow(()-> new RoomDoesNotExistException("Room does not exist!"));
+        if(!room.isUnderMaintenance()) throw new RoomIsAlreadyAvailable("Room " + roomNumber +" is not under maintenance!");
+        room.setAvailable(true);
+        room.setUnderMaintenance(false);
+        roomRepository.save(room);
+        return Mapper.map(room);
+    }
+
+    public ViewGuestDetailsResponse viewGuestDetails(String roomNumber){
+        Reservation reservation = reservationRepository.findByRoomNumber(roomNumber)
+                .orElseThrow(()-> new ReservationDoesNotExist("No Reservation for Room" + roomNumber + "."));
+        ViewGuestDetailsResponse response = new ViewGuestDetailsResponse();
+        response.setName(reservation.getGuest().getName());
+        response.setEmail(reservation.getGuest().getEmail());
+        response.setPhoneNumber(reservation.getGuest().getPhoneNumber());
+        response.setReferenceNo(reservation.getReferenceNo());
+        response.setRoomNumber(reservation.getRoomNumber());
+        response.setCheckInDate(String.valueOf(reservation.getCheckInDate()));
+        response.setCheckOutDate(String.valueOf(reservation.getCheckOutDate()));
+        return response;
+    }
+
+    private double assignRoomPrice(Type roomType){
+        if(roomType == Type.SINGLE) return singleRoomPrice;
+        if(roomType == Type.DOUBLE) return doubleRoomPrice;
+        if(roomType == Type.SUITE) return suiteRoomPrice;
+        return 0;
+    }
+}
