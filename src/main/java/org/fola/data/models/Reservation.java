@@ -17,4 +17,5 @@ public class Reservation {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private Guest guest;
+    private boolean isValid = true;
 }

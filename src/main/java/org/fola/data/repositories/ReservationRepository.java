@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends MongoRepository<Reservation, String> {
     Optional<Reservation> findByRoomNumber(String roomNumber);
+
+    Optional<Reservation> findByReferenceNo(String referenceNumber);
 }
