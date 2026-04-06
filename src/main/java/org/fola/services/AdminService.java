@@ -30,6 +30,8 @@ public class AdminService {
     ReservationRepository reservationRepository;
 
     public AddRoomResponse addRoom(AddRoomRequest request){
+        if(request.getRoomNumber().isBlank()) throw new InvalidRoomNumberException("Room Number cannot be blank!");
+        if(roomRepository.existsByRoomNumber(request.getRoomNumber())) throw new RoomAlreadyExistsException("Room " + request.getRoomNumber() + " already exists!");
         Room room = Mapper.map(request);
         room.setPricePerNight(assignRoomPrice(request.getRoomType()));
         roomRepository.save(room);

@@ -12,7 +12,7 @@ import org.fola.dtos.responses.CalculatePaymentResponse;
 public class Mapper {
     public static Room map(AddRoomRequest request){
         Room room = new Room();
-        room.setRoomNumber(request.getRoomNumber());
+        room.setRoomNumber(request.getRoomNumber().trim());
         room.setRoomType(request.getRoomType());
         return room;
     }
@@ -46,7 +46,7 @@ public class Mapper {
 
     public static CalculatePaymentResponse map(CalculatePaymentRequest request){
         CalculatePaymentResponse response = new CalculatePaymentResponse();
-        response.setRoomType(response.getRoomType());
+        response.setRoomType(request.getRoomType());
         return response;
     }
 }

@@ -1,8 +1,11 @@
 package org.fola.services;
 
+import org.fola.data.models.Type;
 import org.fola.dtos.requests.CalculatePaymentRequest;
 import org.fola.dtos.responses.CalculatePaymentResponse;
 import org.fola.dtos.responses.FestivePeriodPricing;
+import org.fola.exceptions.InvalidNumberOfNightsException;
+import org.fola.exceptions.RoomTypeIsNotAvailable;
 import org.fola.utils.Mapper;
 import org.fola.utils.RoomPricing;
 import org.springframework.stereotype.Service;
@@ -19,9 +22,16 @@ public class PaymentService {
     }
 
     public CalculatePaymentResponse calculatePayment(CalculatePaymentRequest request){
+        if(request.getNumberOfNights() < 1) throw new InvalidNumberOfNightsException("Number of Nights must be 1 or more!");
         CalculatePaymentResponse response = Mapper.map(request);
-        if(request.isFestive()) response.setFestivePeriodSurcharge(String.valueOf(RoomPricing.FESTIVE_RATE * 100) + "%");
-        if(!request.isFestive()) response.setFestivePeriodSurcharge("0%");
+        double cost;
+
+        if (request.isFestive()) {
+            cost = RoomPricing.FESTIVE_RATE * 100;
+            response.setFestivePeriodSurcharge(cost + "%");
+        } else {
+            response.setFestivePeriodSurcharge("0%");
+        }
 
         double pricePerNight = setPriceByRoomType(String.valueOf(request.getRoomType()));
         if(request.isFestive()) pricePerNight += pricePerNight * RoomPricing.FESTIVE_RATE;

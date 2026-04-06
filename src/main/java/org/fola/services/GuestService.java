@@ -9,9 +9,7 @@ import org.fola.data.repositories.RoomRepository;
 import org.fola.dtos.requests.BookRoomRequest;
 import org.fola.dtos.responses.AddRoomResponse;
 import org.fola.dtos.responses.BookRoomResponse;
-import org.fola.exceptions.ReservationDoesNotExist;
-import org.fola.exceptions.RoomDoesNotExistException;
-import org.fola.exceptions.RoomTypeIsNotAvailable;
+import org.fola.exceptions.*;
 import org.fola.utils.Mapper;
 import org.fola.utils.ReferenceNumberGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +31,13 @@ public class GuestService {
 
     @Transactional
     public BookRoomResponse bookRoom(BookRoomRequest request){
+        if (request.getNoOfNights() < 1) throw new InvalidNumberOfNightsException("Number of Nights must be 1 or more!");
         Room foundRoom = null;
         boolean isFound = false;
         for(Room room : roomRepository.findAll()){
             if(room.isAvailable() && room.getRoomType() == request.getRoomType()) {foundRoom = room;isFound = true;break;}
         }
-        if(!isFound) throw new RoomTypeIsNotAvailable("Room is not available!");
+        if(!isFound) throw new RoomTypeIsNotAvailable("Room of type: " + request.getRoomType() + " is not available!");
 
         foundRoom.setAvailable(false);
         roomRepository.save(foundRoom);
@@ -70,6 +69,7 @@ public class GuestService {
     public String cancelReservation(String referenceNumber){
         Reservation reservation = reservationRepository.findByReferenceNo(referenceNumber)
                 .orElseThrow(()-> new ReservationDoesNotExist("Reservation does not exist!"));
+        if(!reservation.isValid()) throw new ReservationIsInvalidException("Reservation is invalid!");
         reservation.setValid(false);
         reservationRepository.save(reservation);
 
@@ -99,8 +99,6 @@ public class GuestService {
         if(room.isAvailable()) return "Room " + roomNumber + " is available!";
         return "Room is not available!";
     }
-
-
 
     private String generateRefNo(){
         return ReferenceNumberGenerator.generateRefNo(4);

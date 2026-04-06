@@ -13,4 +13,6 @@ public interface RoomRepository extends MongoRepository<Room, String> {
     Optional<Room> findByRoomNumber(String roomNumber);
 
     Optional<Room> findByRoomType(Type roomType);
+
+    boolean existsByRoomNumber(String roomNumber);
 }
