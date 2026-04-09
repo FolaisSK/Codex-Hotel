@@ -29,4 +29,22 @@ public class AdminController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PatchMapping("/mark-room-for-maintenance/{roomNumber}")
+    public ResponseEntity<?> markRoomForMaintenance(@PathVariable("roomNumber") String roomNumber){
+        try {
+            return ResponseEntity.ok(adminService.markRoomForMaintenance(roomNumber));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("unmark-room-for-maintenance/{roomNumber}")
+    public ResponseEntity<?> unmarkRoomForMaintenance(@PathVariable("roomNumber") String roomNumber){
+        try{
+            return ResponseEntity.ok(adminService.unmarkRoomForMaintenance(roomNumber));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
